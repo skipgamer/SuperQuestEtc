@@ -35,12 +35,13 @@ cooldownTime = .75
 
 enemies = {}
 
+player = {}
 xPos = 0
 yPos = 0
-worldX = 0
-worldY = 0
-cameraX = 0
-cameraY = 0
+player.X = 0
+player.Y = 0
+cameraX = 400
+cameraY = 300
 mouseX = 0
 mouseY = 0
 mouseDistance = 0
@@ -96,8 +97,7 @@ function love.draw() --called by main loop every frame (used to display graphics
 	love.graphics.setColor(255, 255, 255, 255)
 	for i = 1, table.maxn(attackProjectiles) do
 		local attack = attackProjectiles[i]
-		love.graphics.circle("fill", attack[0]-cameraX + (attack[4] * attack[7] * 300), attack[1]-cameraY + (attack[5] * attack[7] * 300), 3, 8)
-
+		love.graphics.circle("fill", attack.startX, attack.startY, 3, 8)
 	end
 
 	--enemies
@@ -113,7 +113,7 @@ function love.draw() --called by main loop every frame (used to display graphics
 		love.graphics.setColor(0, 255, 0, 255)
 		love.graphics.print("fps: "..fps, 0, 0)
 		love.graphics.print("screen X, Y: "..math.floor(xPos)..", "..math.floor(yPos), 0, 15)
-		love.graphics.print("world X, Y: "..math.floor(worldX)..", "..math.floor(worldY), 0, 30)
+		love.graphics.print("world X, Y: "..math.floor(player.X)..", "..math.floor(player.Y), 0, 30)
 		love.graphics.print("camera X, Y: "..math.floor(cameraX)..", "..math.floor(cameraY), 0, 45)
 		love.graphics.print("mouse X, Y: "..mouseX..", "..mouseY, 0, 60)
 		love.graphics.print("mouse distance: "..math.floor(mouseDistance), 0, 75)
@@ -184,7 +184,7 @@ function love.update(dt) --called by main loop every frame
 
 	for i = 1, table.maxn(attackProjectiles) do
 		local attack = attackProjectiles[i]
-		attack[7] = attack[7] + dt
+		attack.timeElapsed = attack.timeElapsed + dt
 	end
 
 	PlayerMovement()
@@ -194,14 +194,13 @@ function DoAttack()
 	if currentEnergy >= constAttackCost then --do attack
 		if cooldownTimer == 0 then
 			local attack = {}
-			table.insert (attack, 0, xPos + cameraX)
-			table.insert (attack, 1, yPos + cameraY)
-			table.insert (attack, 2, mouseX)
-			table.insert (attack, 3, mouseY)
-			table.insert (attack, 4, facingNormalX)
-			table.insert (attack, 5, facingNormalY)
-			table.insert (attack, 6, gameTimer)
-			table.insert (attack, 7, 0)
+			attack.startX = player.X + cameraX
+			attack.startY = player.Y + cameraY
+			attack.targetX = mouseX
+			attack.targetY = mouseY
+			attack.directionX = facingNormalX
+			attack.directionY = facingNormalY
+			attack.timeElapsed = 0
 			table.insert (attackProjectiles, attack)
 			print(table.maxn(attackProjectiles))
 			currentEnergy = currentEnergy - constAttackCost
@@ -219,11 +218,13 @@ function SpawnEnemy()
 end
 
 function PlayerMovement()
+
 	--facing direction
 	mouseX, mouseY = love.mouse.getPosition()
 	mouseDistance = math.sqrt((xPos-mouseX) * (xPos-mouseX) + (yPos-mouseY) * (yPos-mouseY))
 	facingNormalX = (mouseX - xPos) / mouseDistance
 	facingNormalY = (mouseY - yPos) / mouseDistance
+
 	--sprinting
 	moveSpeed = constMoveSpeed
 	if currentEnergy < 1 then isSprinting = false end
@@ -239,6 +240,7 @@ function PlayerMovement()
 		    currentEnergy = 100
 		end
 	end
+
 	--standard movement
 	diagonalMovement = moveSpeed * .7 * deltaT
 	standardMovement = moveSpeed * deltaT
@@ -248,13 +250,13 @@ function PlayerMovement()
 			else
 				cameraY = cameraY - diagonalMovement
 			end
-			worldY = worldY - diagonalMovement
+			player.Y = player.Y - diagonalMovement
 		else
 			if yPos > 200 then yPos = yPos - standardMovement 
 			else
 				cameraY = cameraY - standardMovement
 			end
-			worldY = worldY - standardMovement
+			player.Y = player.Y - standardMovement
 		end
 	end
 	if moveDown == true then 
@@ -263,13 +265,13 @@ function PlayerMovement()
 			else
 				cameraY = cameraY + diagonalMovement
 			end
-			worldY = worldY + diagonalMovement
+			player.Y = player.Y + diagonalMovement
 		else
 			if yPos < 400 then yPos = yPos + standardMovement 
 			else
 				cameraY = cameraY + standardMovement
 			end
-			worldY = worldY + standardMovement
+			player.Y = player.Y + standardMovement
 		end
 	end
 	if moveLeft == true then 
@@ -278,13 +280,13 @@ function PlayerMovement()
 			else
 				cameraX = cameraX - diagonalMovement
 			end
-			worldX = worldX - diagonalMovement
+			player.X = player.X - diagonalMovement
 		else
 		    if xPos > 200 then xPos = xPos - standardMovement 
 			else
 				cameraX = cameraX - standardMovement
 			end
-			worldX = worldX - standardMovement
+			player.X = player.X - standardMovement
 		end
 	end
 	if moveRight == true then 
@@ -293,13 +295,13 @@ function PlayerMovement()
 			else
 				cameraX = cameraX + diagonalMovement
 			end
-			worldX = worldX + diagonalMovement
+			player.X = player.X + diagonalMovement
 		else
 		    if xPos < 600 then xPos = xPos + standardMovement 
 			else
 				cameraX = cameraX + standardMovement
 			end
-			worldX = worldX + standardMovement
+			player.X = player.X + standardMovement
 		end
 	end
 end
