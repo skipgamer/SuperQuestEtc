@@ -4,6 +4,8 @@ debug = true
 screenWidth = 0
 screenHeight = 0
 
+terrain = {}
+
 deltaT = 0
 fps = 0
 timer = 0
@@ -34,14 +36,16 @@ cooldownTimer = 0
 cooldownTime = .75
 
 enemies = {}
+friendlies = {}
 
 player = {}
+player.x = 0
+player.y = 0
+
 xPos = 0
 yPos = 0
-player.X = 0
-player.Y = 0
-cameraX = 400
-cameraY = 300
+cameraX = -400
+cameraY = -300
 mouseX = 0
 mouseY = 0
 mouseDistance = 0
@@ -54,10 +58,62 @@ function love.load() --called when love framework is loaded
 	yPos = love.graphics.getHeight()/2
 	screenWidth = love.graphics.getWidth()
 	screenHeight = love.graphics.getHeight()
+
+	--"generate" world "features"
+	local forestNo = 1
+	for i = 1, forestNo do
+		local forestWidth = 200
+		local forestHeight = 150
+		local forestPoly = {}
+		--table.insert(forestPoly, love.math.random(800)+cameraX)
+		--table.insert(forestPoly, love.math.random(600)+cameraY)
+		--local pointNo = 2
+		--for i = 1, pointNo do
+		--topright
+		table.insert(forestPoly, forestWidth + forestWidth/2 - love.math.random(forestWidth/2))
+		table.insert(forestPoly, forestHeight + forestHeight/2 - love.math.random(forestHeight/2))
+		--top
+		table.insert(forestPoly, love.math.random(forestWidth/4))
+		table.insert(forestPoly, forestHeight + forestHeight/2 - love.math.random(forestHeight/2))
+		--topleft
+		table.insert(forestPoly, -forestWidth + forestWidth/2 - love.math.random(forestWidth/2))
+		table.insert(forestPoly, forestHeight + forestHeight/2 - love.math.random(forestHeight/2))
+		--left
+		table.insert(forestPoly, -forestWidth + forestWidth/2 - love.math.random(forestWidth/2))
+		table.insert(forestPoly, love.math.random(forestHeight/4))
+		--botleft
+		table.insert(forestPoly, -forestWidth + forestWidth/2 - love.math.random(forestWidth/2))
+		table.insert(forestPoly, -forestHeight + forestHeight/2 - love.math.random(forestHeight/2))
+		--bot
+		table.insert(forestPoly, love.math.random(forestHeight/4))
+		table.insert(forestPoly, -forestHeight + forestHeight/2 - love.math.random(forestHeight/2))
+		--botright
+		table.insert(forestPoly, forestWidth + forestWidth/2 - love.math.random(forestWidth/2))
+		table.insert(forestPoly, -forestHeight + forestHeight/2 - love.math.random(forestHeight/2))
+		--right
+		table.insert(forestPoly, forestWidth + forestWidth/2 - love.math.random(forestWidth/2))
+		table.insert(forestPoly, love.math.random(forestHeight/4))
+			
+		--end
+		table.insert(terrain, forestPoly)
+	end
 end
 
 
 function love.draw() --called by main loop every frame (used to display graphics, not process game logic)
+
+	--love.graphics.polygon('fill', x1, y1, x2, y2, x3, y3, etc)
+	--draw world
+	love.graphics.setColor(15,40,15,255)
+	for feature = 1, table.maxn(terrain) do
+		terrainFeature = terrain[feature]
+		terrainOffset = {}
+		for j = 1, table.maxn(terrainFeature)/2 do
+			terrainOffset[j*2-1] = terrainFeature[j*2-1] - cameraX
+			terrainOffset[j*2] = terrainFeature[j*2] - cameraY
+		end
+		love.graphics.polygon("fill", terrainOffset)
+	end
 	--fps calc
 	timer = timer + deltaT
 	frames = frames + 1
@@ -85,6 +141,31 @@ function love.draw() --called by main loop every frame (used to display graphics
 	love.graphics.circle("line", xPos, yPos, 10, 20) --outline
 	love.graphics.line(xPos, yPos, xPos + facingNormalX * 10, yPos + facingNormalY * 10) --facing direction
 
+	--attacks
+	love.graphics.setColor(255, 255, 255, 255)
+	for i = 1, table.maxn(attackProjectiles) do
+		local attack = attackProjectiles[i]
+		love.graphics.circle("fill", attack.x - cameraX, attack.y - cameraY, 3, 8)
+	end
+
+	--enemies
+	for i = 1, table.maxn(enemies) do
+		local enemy = enemies[i]
+		love.graphics.setColor(0, 0, 0, 255)
+		love.graphics.circle("fill", enemy.x -cameraX, enemy.y - cameraY, 10, 20) --background
+		love.graphics.setColor(255, 0, 0, 255)
+		love.graphics.circle("line", enemy.x -cameraX, enemy.y - cameraY, 10, 20) --outline
+	end
+
+	--friendlies
+	for i = 1, table.maxn(friendlies) do
+		local friendly = friendlies[i]
+		love.graphics.setColor(0, 0, 0, 255)
+		love.graphics.circle("fill", friendly.x -cameraX, friendly.y - cameraY, 10, 20) --background
+		love.graphics.setColor(0, 255, 0, 255)
+		love.graphics.circle("line", friendly.x -cameraX, friendly.y - cameraY, 10, 20) --outline
+	end
+
 	--energy bar
 	love.graphics.setColor(100, 100, 100, 40)
 	love.graphics.rectangle("fill", screenWidth/2 - 100, screenHeight - 100, 200, 20)
@@ -93,27 +174,11 @@ function love.draw() --called by main loop every frame (used to display graphics
 	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.print(math.floor(currentEnergy), screenWidth/2 + 105, screenHeight - 97)
 
-	--attacks
-	love.graphics.setColor(255, 255, 255, 255)
-	for i = 1, table.maxn(attackProjectiles) do
-		local attack = attackProjectiles[i]
-		love.graphics.circle("fill", attack.startX, attack.startY, 3, 8)
-	end
-
-	--enemies
-	for i = 1, table.maxn(enemies) do
-		local enemy = enemies[i]
-		love.graphics.setColor(0, 0, 0, 255)
-		love.graphics.circle("fill", enemy[0] -cameraX, enemy[1] - cameraY, 10, 20) --background
-		love.graphics.setColor(255, 0, 0, 255)
-		love.graphics.circle("line", enemy[0] -cameraX, enemy[1] - cameraY, 10, 20) --outline
-	end
-
 	if debug == true then
 		love.graphics.setColor(0, 255, 0, 255)
 		love.graphics.print("fps: "..fps, 0, 0)
 		love.graphics.print("screen X, Y: "..math.floor(xPos)..", "..math.floor(yPos), 0, 15)
-		love.graphics.print("world X, Y: "..math.floor(player.X)..", "..math.floor(player.Y), 0, 30)
+		love.graphics.print("world X, Y: "..math.floor(player.x)..", "..math.floor(player.y), 0, 30)
 		love.graphics.print("camera X, Y: "..math.floor(cameraX)..", "..math.floor(cameraY), 0, 45)
 		love.graphics.print("mouse X, Y: "..mouseX..", "..mouseY, 0, 60)
 		love.graphics.print("mouse distance: "..math.floor(mouseDistance), 0, 75)
@@ -138,6 +203,7 @@ function love.keypressed(key)
 	elseif key == "right" or key == "d" then moveRight = true
 	elseif key == "lshift" or key == "rshift" then isSprinting = true
 	elseif debug == true and key == "b" then SpawnEnemy()
+	elseif debug == true and key == "n" then SpawnFriendly()
 	else
 	end
 end
@@ -163,15 +229,36 @@ function love.update(dt) --called by main loop every frame
 	if isAttacking == true then
 		if startAttack == false then
 			startAttack = true -- first frame of mouseDown
-			print ("attack start")
-				attack = DoAttack()
+			--print ("attack start")
+			DoAttack()
 		end
 	else
 		if startAttack == true then
 			startAttack = false
-			print ("attack end")
+			--print ("attack end")
 		end
 	end
+	for i = 1, table.maxn(attackProjectiles) do
+		local attack = attackProjectiles[i]
+		if attack ~= null then
+			attack.timeElapsed = attack.timeElapsed + dt
+			attack.x = attack.x + attack.directionX * (deltaT * 300)
+			attack.y = attack.y + attack.directionY * (deltaT * 300)
+			if attack.timeElapsed >= 1 then
+				table.remove(attackProjectiles, i)
+			end
+		end
+	end
+
+	--[[move enemies
+	for i = 1, table.maxn(enemies) do
+		local enemy = enemies[i]
+		local playerDistance = math.sqrt((player.x-enemy.x) * (player.x-enemy.x) + (player.y-enemy.y) * (player.y-enemy.y))
+		enemy.facingX = (enemy.x - player.x) / playerDistance
+		enemy.facingY = (enemy.y - player.y) / playerDistance
+		enemy.x = enemy.x - enemy.facingX * deltaT * 100
+		enemy.y = enemy.y - enemy.facingY * deltaT * 100
+	end--]]
 
 	--cooldown
 	if startAttack == true or cooldownTimer > 0 then
@@ -182,11 +269,6 @@ function love.update(dt) --called by main loop every frame
 		if isAttacking == true then attack = DoAttack() end
 	end
 
-	for i = 1, table.maxn(attackProjectiles) do
-		local attack = attackProjectiles[i]
-		attack.timeElapsed = attack.timeElapsed + dt
-	end
-
 	PlayerMovement()
 end
 
@@ -194,10 +276,8 @@ function DoAttack()
 	if currentEnergy >= constAttackCost then --do attack
 		if cooldownTimer == 0 then
 			local attack = {}
-			attack.startX = player.X + cameraX
-			attack.startY = player.Y + cameraY
-			attack.targetX = mouseX
-			attack.targetY = mouseY
+			attack.x = player.x
+			attack.y = player.y
 			attack.directionX = facingNormalX
 			attack.directionY = facingNormalY
 			attack.timeElapsed = 0
@@ -205,16 +285,22 @@ function DoAttack()
 			print(table.maxn(attackProjectiles))
 			currentEnergy = currentEnergy - constAttackCost
 			cooldownTimer = 0
-			return attack
 		end
 	end
 end
 
 function SpawnEnemy()
 	local enemy = {}
-	table.insert(enemy, 0, mouseX +cameraX)
-	table.insert(enemy, 1, mouseY +cameraY)
+	enemy.x = mouseX + cameraX
+	enemy.y = mouseY + cameraY
 	table.insert (enemies, enemy)
+end
+
+function SpawnFriendly()
+	local friendly = {}
+	friendly.x = mouseX + cameraX
+	friendly.y = mouseY + cameraY
+	table.insert (friendlies, friendly)
 end
 
 function PlayerMovement()
@@ -250,13 +336,13 @@ function PlayerMovement()
 			else
 				cameraY = cameraY - diagonalMovement
 			end
-			player.Y = player.Y - diagonalMovement
+			player.y = player.y - diagonalMovement
 		else
 			if yPos > 200 then yPos = yPos - standardMovement 
 			else
 				cameraY = cameraY - standardMovement
 			end
-			player.Y = player.Y - standardMovement
+			player.y = player.y - standardMovement
 		end
 	end
 	if moveDown == true then 
@@ -265,13 +351,13 @@ function PlayerMovement()
 			else
 				cameraY = cameraY + diagonalMovement
 			end
-			player.Y = player.Y + diagonalMovement
+			player.y = player.y + diagonalMovement
 		else
 			if yPos < 400 then yPos = yPos + standardMovement 
 			else
 				cameraY = cameraY + standardMovement
 			end
-			player.Y = player.Y + standardMovement
+			player.y = player.y + standardMovement
 		end
 	end
 	if moveLeft == true then 
@@ -280,13 +366,13 @@ function PlayerMovement()
 			else
 				cameraX = cameraX - diagonalMovement
 			end
-			player.X = player.X - diagonalMovement
+			player.x = player.x - diagonalMovement
 		else
 		    if xPos > 200 then xPos = xPos - standardMovement 
 			else
 				cameraX = cameraX - standardMovement
 			end
-			player.X = player.X - standardMovement
+			player.x = player.x - standardMovement
 		end
 	end
 	if moveRight == true then 
@@ -295,13 +381,13 @@ function PlayerMovement()
 			else
 				cameraX = cameraX + diagonalMovement
 			end
-			player.X = player.X + diagonalMovement
+			player.x = player.x + diagonalMovement
 		else
 		    if xPos < 600 then xPos = xPos + standardMovement 
 			else
 				cameraX = cameraX + standardMovement
 			end
-			player.X = player.X + standardMovement
+			player.x = player.x + standardMovement
 		end
 	end
 end
