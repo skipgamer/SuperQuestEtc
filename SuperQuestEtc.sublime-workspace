@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"terrain",
+				"terrainFeature"
+			],
+			[
 				"attack",
 				"attackProjectiles"
 			],
@@ -83,15 +87,7 @@
 			"file": "Main.Lua",
 			"settings":
 			{
-				"buffer_size": 8500,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": ".gitignore",
-			"settings":
-			{
-				"buffer_size": 623,
+				"buffer_size": 13093,
 				"line_ending": "Windows"
 			}
 		}
@@ -124,6 +120,8 @@
 	},
 	"file_history":
 	[
+		"/C/LoveProjects/SuperQuestEtc/Main.Lua",
+		"/C/LoveProjects/SuperQuestEtc/.gitignore",
 		"/C/Users/User/AppData/Roaming/Sublime Text 2/Packages/Lua Love/LuaLove.sublime-build"
 	],
 	"find":
@@ -142,6 +140,14 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"programstate",
+			"screenWidth",
+			"facingNormalY",
+			"facingNormalX",
+			"attack.Y",
+			"attack.X",
+			"player.Y",
+			"player.X",
 			"xPos",
 			"worldY",
 			"worldX",
@@ -155,6 +161,12 @@
 		"regex": false,
 		"replace_history":
 		[
+			"player.facing.y",
+			"player.facing.x",
+			"attack.y",
+			"attack.x",
+			"player.y",
+			"player.x",
 			"player.Y",
 			"player.X",
 			"cooldownTime",
@@ -169,7 +181,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -177,47 +189,21 @@
 					"file": "Main.Lua",
 					"settings":
 					{
-						"buffer_size": 8500,
+						"buffer_size": 13093,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5513,
-								5513
+								85,
+								85
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/Lua/Lua.tmLanguage",
 							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": ".gitignore",
-					"settings":
-					{
-						"buffer_size": 623,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								46,
-								46
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
